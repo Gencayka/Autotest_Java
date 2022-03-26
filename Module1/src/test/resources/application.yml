@@ -1,0 +1,23 @@
+spring:
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: sample_url
+    username: sample_username
+    password: "sample_password"
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQL9Dialect
+
+        #логирует SQL-запросы, которые отправляет Hibernate в БД
+        #show_sql: true
+
+        #форматирует залогированые SQl-запросы, чтобы они не выглядели, как сплошная строка
+        #format_sql: true
+
+        #при FetchType.LAZY при запросе неподгруженной записи создается новая транзакция
+        #иначе возникает ошибка, т.к. на момент запроса транзакция уже завершена
+        enable_lazy_load_no_trans: true
+logging:
+  level:
+    org.hibernate.type.descriptor.sql.BasicBinder: DEBUG

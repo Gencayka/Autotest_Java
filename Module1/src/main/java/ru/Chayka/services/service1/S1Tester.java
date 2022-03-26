@@ -1,0 +1,183 @@
+package ru.Chayka.services.service1;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import io.restassured.http.ContentType;
+import io.restassured.http.Headers;
+import io.restassured.response.Response;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import ru.Chayka.RestRequestTester;
+import ru.Chayka.RestConfig;
+import ru.Chayka.entities.Entity3;
+import ru.Chayka.repositories.Entity3Repository;
+import ru.Chayka.enums.TestClient;
+import ru.Chayka.services.service1.enums.S1HeaderPattern;
+import ru.Chayka.services.service1.enums.S1ResponseStatusValues;
+import ru.Chayka.services.service1.requestbody.S1RequestBody;
+import ru.Chayka.services.service1.requestbody.keys.ClientS1Key;
+import ru.Chayka.services.service1.requestbody.keys.S1Key1;
+import ru.Chayka.services.service1.responsebody.S1ResponseBody;
+
+import java.io.IOException;
+import java.util.*;
+import java.util.regex.Pattern;
+
+/**
+ * Класс предназначен для тестирования сервиса Service1
+ */
+@Component
+public final class S1Tester extends RestRequestTester {
+    private final S1TestDataHolder testDataHolder;
+    private final Entity3Repository entity3Repository;
+
+    public S1Tester(@Autowired S1TestDataHolder testDataHolder,
+                    @Autowired Entity3Repository entity3Repository,
+                    @Autowired S1TestCounter counter) {
+        super(LoggerFactory.getLogger(S1Tester.class.getSimpleName()));
+
+        defaultHeaders.put(S1HeaderPattern.HEADER1.getHeaderName(), testDataHolder.getDefaultHeader1());
+        defaultHeaders.put(S1HeaderPattern.HEADER2.getHeaderName(), testDataHolder.getDefaultHeader2());
+        defaultHeaders.put(S1HeaderPattern.HEADER3.getHeaderName(), testDataHolder.getDefaultHeader3());
+        defaultHeaders.put(S1HeaderPattern.HEADER4.getHeaderName(), testDataHolder.getDefaultHeader4());
+
+        this.testDataHolder = testDataHolder;
+        this.entity3Repository = entity3Repository;
+        this.counter = counter;
+
+        mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+
+        baseRequestSpecification
+                .baseUri(RestConfig.getUniqueInstance().getBaseUri())
+                .port(RestConfig.getUniqueInstance().getPort())
+                .basePath(RestConfig.getUniqueInstance().getService1BasePath())
+                .urlEncodingEnabled(false)
+                .contentType(ContentType.JSON);
+    }
+
+    public void positiveTest(String testName,
+                             TestClient testClient,
+                             List<String> parameters) throws IOException {
+        positiveTest(testName, defaultHeaders, testClient, parameters);
+    }
+
+    public void positiveTest(String testName,
+                             Map<String, String> requestHeaders,
+                             TestClient testClient,
+                             List<String> parameters) throws IOException {
+
+        Map<String, String> localRequestHeaders = new HashMap<>(requestHeaders);
+        if (!requestHeaders.containsKey("header5")) {
+            localRequestHeaders.put("header5", testDataHolder.formHeader5());
+        }
+        if (requestHeaders.containsKey("header6")) {
+            localRequestHeaders.put("header6", testDataHolder.formHeader6(testName));
+        }
+
+        baseTest(testName, S1ResponseStatusValues.OK, localRequestHeaders, testClient, parameters, true);
+    }
+
+    public void baseTest(String testName,
+                         S1ResponseStatusValues responseStatusValues,
+                         Map<String, String> requestHeaders,
+                         TestClient testClient,
+                         List<String> parameters,
+                         boolean isRequestBodyValid) throws IOException {
+        clearSoftAssert();
+        logger.debug("Starting test " + testName);
+
+        List<Entity3> allClientEntities3 = entity3Repository.findByClient(testClient);
+
+        S1RequestBody requestBody = S1RequestBody.builder()
+                .s1Key1(S1Key1.builder()
+                        .clientS1Key(ClientS1Key.builder().buildByClient(testClient))
+                        .parameter(parameters)
+                        .build())
+                .build();
+
+        String requestBodyAsString = mapper.writeValueAsString(requestBody);
+
+        Response restAssuredResponse = sendPostRequest(requestHeaders, requestBodyAsString);
+
+        //Проверки
+        checkResponseHttpCode(restAssuredResponse, responseStatusValues);
+        assertAll(testName, requestHeaders, requestBodyAsString, restAssuredResponse);
+
+        S1ResponseBody responseBody = mapper.readValue(restAssuredResponse.asString(), S1ResponseBody.class);
+        checkResponseStatusKeys(responseBody, responseStatusValues);
+        assertAll(testName, requestHeaders, requestBodyAsString, restAssuredResponse);
+
+        checkResponseHeaders(requestHeaders, restAssuredResponse, responseStatusValues);
+        validateJsonBody(requestBodyAsString, testDataHolder.getRequestJsonSchema(), isRequestBodyValid);
+        validateJsonBody(restAssuredResponse.asString(), testDataHolder.getResponseJsonSchema());
+
+        /*
+        Остальные проверки
+         */
+
+        finalAssertAll(testName, requestHeaders, requestBodyAsString, restAssuredResponse);
+    }
+
+    public void specificHeadersTest(String testName,
+                                    S1ResponseStatusValues responseStatusValues,
+                                    Map<String, String> requestHeaders,
+                                    boolean isRequestBodyValid) throws IOException {
+        Map<String, String> localRequestHeaders = new HashMap<>(defaultHeaders);
+        localRequestHeaders.put(S1HeaderPattern.HEADER5.getHeaderName(), testDataHolder.formHeader5());
+        localRequestHeaders.put(S1HeaderPattern.HEADER6.getHeaderName(), testDataHolder.formHeader6(testName));
+
+        for (Map.Entry<String, String> header : requestHeaders.entrySet()) {
+            if (header.getValue() == null) {
+                localRequestHeaders.remove(header.getKey());
+            } else {
+                localRequestHeaders.put(header.getKey(), header.getValue());
+            }
+        }
+
+        baseTest(
+                testName,
+                responseStatusValues,
+                localRequestHeaders,
+                testDataHolder.getDefaultTestClient(),
+                testDataHolder.getDefaultParameter(),
+                isRequestBodyValid);
+    }
+
+    private void checkResponseHeaders(Map<String, String> requestHeaders,
+                                      Response restAssuredResponse,
+                                      S1ResponseStatusValues responseStatusValues) {
+        Headers responseHeaders = restAssuredResponse.headers();
+
+        logger.debug("Found response headers: " + responseHeaders.size());
+        logger.debug("Starting response headers checks");
+
+        Set<String> requiredHeadersSet = new HashSet<>(requestHeaders.keySet());
+        requiredHeadersSet.remove(S1HeaderPattern.HEADER2.getHeaderName());
+        requiredHeadersSet.add(S1HeaderPattern.HEADER7.getHeaderName());
+
+        Map<String, String> headersPatterns = new HashMap<>();
+        for (S1HeaderPattern headerPattern : S1HeaderPattern.values()) {
+            headersPatterns.put(headerPattern.getHeaderName(), headerPattern.getPattern());
+        }
+
+        if (responseStatusValues == S1ResponseStatusValues.NO_REQUIRED_HEADER) {
+            for (String requiredHeaderName : requiredHeadersSet) {
+                softAssert.assertNull(responseHeaders.getValue(requiredHeaderName),
+                        String.format("%s check in response headers failed:", requiredHeaderName));
+            }
+        } else {
+            for (String requiredHeaderName : requiredHeadersSet) {
+                if (requestHeaders.containsKey(requiredHeaderName)
+                        && Pattern.matches(headersPatterns.get(requiredHeaderName), requestHeaders.get(requiredHeaderName))) {
+                    softAssert.assertEquals(responseHeaders.getValue(requiredHeaderName), requestHeaders.get(requiredHeaderName),
+                            String.format("%s check in response headers failed:", requiredHeaderName));
+                } else {
+                    softAssert.assertNull(responseHeaders.getValue(requiredHeaderName),
+                            String.format("%s check in response headers failed:", requiredHeaderName));
+                }
+            }
+        }
+
+        logger.debug("All response headers checks are completed");
+    }
+}
