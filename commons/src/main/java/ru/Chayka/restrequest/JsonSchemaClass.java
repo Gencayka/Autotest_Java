@@ -1,4 +1,4 @@
-package ru.Chayka;
+package ru.Chayka.restrequest;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

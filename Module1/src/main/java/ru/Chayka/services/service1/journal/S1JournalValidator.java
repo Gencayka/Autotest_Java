@@ -1,6 +1,6 @@
 package ru.Chayka.services.service1.journal;
 
-import ru.Chayka.JournalValidator;
+import ru.Chayka.journal.JournalValidator;
 import ru.Chayka.journal.JournalFieldType;
 import ru.Chayka.exceptions.NoSuchJournalEntryTypeException;
 import ru.Chayka.services.service1.journal.enums.S1JournalEntryType;

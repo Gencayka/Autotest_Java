@@ -1,4 +1,4 @@
-package ru.Chayka;
+package ru.Chayka.restrequest;
 
 public interface ResponseBody {
     Integer getStatusCode();

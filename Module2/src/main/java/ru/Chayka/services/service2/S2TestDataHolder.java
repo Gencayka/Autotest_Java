@@ -10,9 +10,9 @@ import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StreamUtils;
 import ru.Chayka.TestDataHolder;
-import ru.Chayka.JsonSchemaClass;
+import ru.Chayka.restrequest.JsonSchemaClass;
 import ru.Chayka.services.service2.enums.S2HeaderPattern;
-import ru.Chayka.services.service2.enums.S2ResponseStatusValues;
+import ru.Chayka.services.service2.enums.S2ResponseValues;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -82,7 +82,7 @@ public final class S2TestDataHolder extends TestDataHolder {
 
         testData.add(new S2HeadersTestData(
                 "null_headers",
-                S2ResponseStatusValues.NO_REQUIRED_HEADER,
+                S2ResponseValues.NO_REQUIRED_HEADER,
                 new HashMap<>() {{
                     put(S2HeaderPattern.HEADER1.getHeaderName(), null);
                     put(S2HeaderPattern.HEADER2.getHeaderName(), null);
@@ -95,7 +95,7 @@ public final class S2TestDataHolder extends TestDataHolder {
 
         testData.add(new S2HeadersTestData(
                 "empty_headers",
-                S2ResponseStatusValues.INVALID_HEADER,
+                S2ResponseValues.INVALID_HEADER,
                 new HashMap<>() {{
                     put(S2HeaderPattern.HEADER1.getHeaderName(), "");
                     put(S2HeaderPattern.HEADER2.getHeaderName(), "");
@@ -110,7 +110,7 @@ public final class S2TestDataHolder extends TestDataHolder {
             if(header == S2HeaderPattern.HEADER2){
                 testData.add(generateSingleHeaderData(
                         "null_" + header.getHeaderName(),
-                        S2ResponseStatusValues.OK,
+                        S2ResponseValues.OK,
                         header.getHeaderName(),
                         null,
                         true
@@ -118,7 +118,7 @@ public final class S2TestDataHolder extends TestDataHolder {
             } else {
                 testData.add(generateSingleHeaderData(
                         "null_" + header.getHeaderName(),
-                        S2ResponseStatusValues.NO_REQUIRED_HEADER,
+                        S2ResponseValues.NO_REQUIRED_HEADER,
                         header.getHeaderName(),
                         null,
                         true
@@ -131,7 +131,7 @@ public final class S2TestDataHolder extends TestDataHolder {
 
 
     private S2HeadersTestData generateSingleHeaderData(String testName,
-                                                       S2ResponseStatusValues responseValues,
+                                                       S2ResponseValues responseValues,
                                                        String headerName,
                                                        String header,
                                                        boolean isRequestBodyValid) {
@@ -149,7 +149,7 @@ public final class S2TestDataHolder extends TestDataHolder {
     @AllArgsConstructor
     public final static class S2HeadersTestData {
         public final String testName;
-        public final S2ResponseStatusValues responseValues;
+        public final S2ResponseValues responseValues;
         public final Map<String, String> requestHeaders;
         public final boolean isRequestBodyValid;
     }

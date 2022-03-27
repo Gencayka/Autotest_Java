@@ -10,9 +10,9 @@ import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StreamUtils;
 import ru.Chayka.TestDataHolder;
-import ru.Chayka.JsonSchemaClass;
+import ru.Chayka.restrequest.JsonSchemaClass;
 import ru.Chayka.enums.TestClient;
-import ru.Chayka.services.service1.enums.S1ResponseStatusValues;
+import ru.Chayka.services.service1.enums.S1ResponseValues;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -114,7 +114,7 @@ public final class S1TestDataHolder extends TestDataHolder {
 
         localSpecificHeadersTestData.add(new S1HeadersTestData(
                 "null_headers",
-                S1ResponseStatusValues.NO_REQUIRED_HEADER,
+                S1ResponseValues.NO_REQUIRED_HEADER,
                 new HashMap<>() {{
                     put("header1", null);
                     put("header2", null);
@@ -128,7 +128,7 @@ public final class S1TestDataHolder extends TestDataHolder {
 
         localSpecificHeadersTestData.add(new S1HeadersTestData(
                 "empty_headers",
-                S1ResponseStatusValues.INVALID_HEADER,
+                S1ResponseValues.INVALID_HEADER,
                 new HashMap<>() {{
                     put("header1", "");
                     put("header2", "");
@@ -148,7 +148,7 @@ public final class S1TestDataHolder extends TestDataHolder {
 
         localNullOrEmptyHeadersTestData.add(new S1HeadersTestData(
                 "null_headers",
-                S1ResponseStatusValues.NO_REQUIRED_HEADER,
+                S1ResponseValues.NO_REQUIRED_HEADER,
                 new HashMap<>() {{
                     put("header1", null);
                     put("header2", null);
@@ -162,7 +162,7 @@ public final class S1TestDataHolder extends TestDataHolder {
 
         localNullOrEmptyHeadersTestData.add(new S1HeadersTestData(
                 "empty_headers",
-                S1ResponseStatusValues.INVALID_HEADER,
+                S1ResponseValues.INVALID_HEADER,
                 new HashMap<>() {{
                     put("header1", "");
                     put("header2", "");
@@ -201,7 +201,7 @@ public final class S1TestDataHolder extends TestDataHolder {
     @AllArgsConstructor
     public final static class S1HeadersTestData {
         public final String testName;
-        public final S1ResponseStatusValues responseValues;
+        public final S1ResponseValues responseValues;
         public final Map<String, String> requestHeaders;
         public final boolean isRequestBodyValid;
     }

@@ -2,7 +2,7 @@ package ru.Chayka.services.service2.responsebody;
 
 import lombok.Getter;
 import lombok.Setter;
-import ru.Chayka.ResponseBody;
+import ru.Chayka.restrequest.ResponseBody;
 import ru.Chayka.services.service2.responsebody.keys.S2Key1;
 import ru.Chayka.services.service2.responsebody.keys.StatusS2Key;
 

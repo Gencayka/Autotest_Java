@@ -7,12 +7,13 @@ import io.restassured.response.Response;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import ru.Chayka.RestRequestTester;
+import ru.Chayka.restrequest.RestRequestTestLogData;
+import ru.Chayka.restrequest.RestRequestTester;
 import ru.Chayka.RestConfig;
 import ru.Chayka.entities.Entity1;
 import ru.Chayka.repositories.Entity1Repository;
 import ru.Chayka.services.service2.enums.S2HeaderPattern;
-import ru.Chayka.services.service2.enums.S2ResponseStatusValues;
+import ru.Chayka.services.service2.enums.S2ResponseValues;
 import ru.Chayka.services.service2.requestbody.keys.S2Key2;
 import ru.Chayka.services.service2.requestbody.keys.S2Key1;
 import ru.Chayka.services.service2.requestbody.S2RequestBody;
@@ -26,8 +27,7 @@ import java.util.regex.Pattern;
  * Класс предназначен для тестирования сервиса Service2
  */
 @Component
-public final class S2Tester extends RestRequestTester {
-    private final S2TestDataHolder testDataHolder;
+public final class S2Tester extends RestRequestTester <S2TestDataHolder> {
     private final Entity1Repository entity1Repository;
 
     public S2Tester(@Autowired S2TestDataHolder testDataHolder,
@@ -55,7 +55,7 @@ public final class S2Tester extends RestRequestTester {
     }
 
     public void baseTest(String testName,
-                         S2ResponseStatusValues responseStatusValues,
+                         S2ResponseValues responseValues,
                          Map<String, String> requestHeaders,
                          String parameter,
                          boolean isRequestBodyValid) throws IOException {
@@ -75,18 +75,18 @@ public final class S2Tester extends RestRequestTester {
         String requestBodyAsString = mapper.writeValueAsString(requestBody);
 
         Response restAssuredResponse = sendPostRequest(requestHeaders, requestBodyAsString);
+        RestRequestTestLogData testLogData =
+                new RestRequestTestLogData(testName, requestHeaders, requestBodyAsString, restAssuredResponse);
 
-        //Проверки
-        checkResponseHttpCode(restAssuredResponse, responseStatusValues);
-        assertAll(testName, requestHeaders, requestBodyAsString, restAssuredResponse);
+        checkResponseHttpCode(restAssuredResponse.statusCode(), responseValues, testLogData);
 
-        S2ResponseBody responseBody = mapper.readValue(restAssuredResponse.asString(), S2ResponseBody.class);
-        checkResponseStatusKeys(responseBody, responseStatusValues);
-        assertAll(testName, requestHeaders, requestBodyAsString, restAssuredResponse);
-
-        checkResponseHeaders(requestHeaders, restAssuredResponse, responseStatusValues);
         validateJsonBody(requestBodyAsString, testDataHolder.getRequestJsonSchema(), isRequestBodyValid);
         validateJsonBody(restAssuredResponse.asString(), testDataHolder.getResponseJsonSchema());
+
+        S2ResponseBody responseBody = deserializeResponseBody(S2ResponseBody.class, testLogData);
+        checkResponseStatusCode(responseBody, responseValues, testLogData);
+
+        checkResponseHeaders(requestHeaders, restAssuredResponse, responseValues);
 
         /*
         Остальные проверки
@@ -96,7 +96,7 @@ public final class S2Tester extends RestRequestTester {
     }
 
     public void specificHeadersTest(String testName,
-                                    S2ResponseStatusValues responseValues,
+                                    S2ResponseValues responseValues,
                                     Map<String, String> requestHeaders,
                                     String parameter,
                                     boolean isRequestBodyValid) throws IOException {
@@ -115,7 +115,7 @@ public final class S2Tester extends RestRequestTester {
     }
 
     public void specificHeadersTest(String testName,
-                                    S2ResponseStatusValues responseValues,
+                                    S2ResponseValues responseValues,
                                     Map<String, String> requestHeaders,
                                     boolean isRequestBodyValid) throws IOException {
         specificHeadersTest(testName, responseValues, requestHeaders, testDataHolder.getDefaultParameter(), isRequestBodyValid);
@@ -123,7 +123,7 @@ public final class S2Tester extends RestRequestTester {
 
     private void checkResponseHeaders(Map<String, String> requestHeaders,
                                                  Response restAssuredResponse,
-                                                 S2ResponseStatusValues responseValues) {
+                                                 S2ResponseValues responseValues) {
         Headers responseHeaders = restAssuredResponse.headers();
 
         logger.debug("Found response headers: " + responseHeaders.size());
@@ -138,7 +138,7 @@ public final class S2Tester extends RestRequestTester {
             headersPatterns.put(headerPattern.getHeaderName(), headerPattern.getPattern());
         }
 
-        if (responseValues == S2ResponseStatusValues.NO_REQUIRED_HEADER) {
+        if (responseValues == S2ResponseValues.NO_REQUIRED_HEADER) {
             for (String requiredHeaderName : requiredHeadersSet) {
                 switch (requiredHeaderName) {
                     case "header3":

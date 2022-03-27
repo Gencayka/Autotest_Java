@@ -9,7 +9,7 @@ import org.testng.annotations.Test;
 import ru.Chayka.TestNGSpringStart;
 import ru.Chayka.services.service2.S2TestDataHolder;
 import ru.Chayka.services.service2.S2Tester;
-import ru.Chayka.services.service2.enums.S2ResponseStatusValues;
+import ru.Chayka.services.service2.enums.S2ResponseValues;
 
 import java.io.IOException;
 import java.util.Map;
@@ -34,7 +34,7 @@ public class S2Test extends AbstractTestNGSpringContextTests {
 
     @Test(dataProvider = "dataProviderHeaders")
     private void headersTest(String testName,
-                                        S2ResponseStatusValues responseValues,
+                                        S2ResponseValues responseValues,
                                         Map<String, String> requestHeaders,
                                         boolean isRequestBodyValid) throws IOException{
         tester.specificHeadersTest(testName, responseValues, requestHeaders, isRequestBodyValid);

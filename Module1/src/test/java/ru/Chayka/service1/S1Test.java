@@ -10,7 +10,7 @@ import ru.Chayka.TestNGSpringStart;
 import ru.Chayka.enums.TestClient;
 import ru.Chayka.services.service1.S1TestDataHolder;
 import ru.Chayka.services.service1.S1Tester;
-import ru.Chayka.services.service1.enums.S1ResponseStatusValues;
+import ru.Chayka.services.service1.enums.S1ResponseValues;
 
 import java.io.IOException;
 import java.util.List;
@@ -53,7 +53,7 @@ public class S1Test extends AbstractTestNGSpringContextTests {
 
     @Test(dataProvider = "dataProviderSpecificHeaders")
     public void headersAndTechKeysTest(String testName,
-                                       S1ResponseStatusValues responseValues,
+                                       S1ResponseValues responseValues,
                                        Map<String, String> requestHeaders,
                                        boolean isRequestBodyValid) throws IOException {
         tester.specificHeadersTest(testName, responseValues, requestHeaders, isRequestBodyValid);
@@ -61,7 +61,7 @@ public class S1Test extends AbstractTestNGSpringContextTests {
 
     @Test(dataProvider = "dataProviderNullOrEmptyHeaders")
     public void nullOrEmptyHeadersAndTechKeysTest(String testName,
-                                       S1ResponseStatusValues responseValues,
+                                       S1ResponseValues responseValues,
                                        Map<String, String> requestHeaders,
                                                   boolean isRequestBodyValid) throws IOException {
         tester.specificHeadersTest(testName, responseValues, requestHeaders, isRequestBodyValid);

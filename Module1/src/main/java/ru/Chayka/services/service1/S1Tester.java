@@ -7,13 +7,14 @@ import io.restassured.response.Response;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import ru.Chayka.RestRequestTester;
+import ru.Chayka.restrequest.RestRequestTestLogData;
+import ru.Chayka.restrequest.RestRequestTester;
 import ru.Chayka.RestConfig;
 import ru.Chayka.entities.Entity3;
 import ru.Chayka.repositories.Entity3Repository;
 import ru.Chayka.enums.TestClient;
 import ru.Chayka.services.service1.enums.S1HeaderPattern;
-import ru.Chayka.services.service1.enums.S1ResponseStatusValues;
+import ru.Chayka.services.service1.enums.S1ResponseValues;
 import ru.Chayka.services.service1.requestbody.S1RequestBody;
 import ru.Chayka.services.service1.requestbody.keys.ClientS1Key;
 import ru.Chayka.services.service1.requestbody.keys.S1Key1;
@@ -27,8 +28,7 @@ import java.util.regex.Pattern;
  * Класс предназначен для тестирования сервиса Service1
  */
 @Component
-public final class S1Tester extends RestRequestTester {
-    private final S1TestDataHolder testDataHolder;
+public final class S1Tester extends RestRequestTester <S1TestDataHolder> {
     private final Entity3Repository entity3Repository;
 
     public S1Tester(@Autowired S1TestDataHolder testDataHolder,
@@ -74,11 +74,11 @@ public final class S1Tester extends RestRequestTester {
             localRequestHeaders.put("header6", testDataHolder.formHeader6(testName));
         }
 
-        baseTest(testName, S1ResponseStatusValues.OK, localRequestHeaders, testClient, parameters, true);
+        baseTest(testName, S1ResponseValues.OK, localRequestHeaders, testClient, parameters, true);
     }
 
     public void baseTest(String testName,
-                         S1ResponseStatusValues responseStatusValues,
+                         S1ResponseValues responseValues,
                          Map<String, String> requestHeaders,
                          TestClient testClient,
                          List<String> parameters,
@@ -98,18 +98,18 @@ public final class S1Tester extends RestRequestTester {
         String requestBodyAsString = mapper.writeValueAsString(requestBody);
 
         Response restAssuredResponse = sendPostRequest(requestHeaders, requestBodyAsString);
+        RestRequestTestLogData testLogData =
+                new RestRequestTestLogData(testName, requestHeaders, requestBodyAsString, restAssuredResponse);
 
-        //Проверки
-        checkResponseHttpCode(restAssuredResponse, responseStatusValues);
-        assertAll(testName, requestHeaders, requestBodyAsString, restAssuredResponse);
+        checkResponseHttpCode(restAssuredResponse.statusCode(), responseValues, testLogData);
 
-        S1ResponseBody responseBody = mapper.readValue(restAssuredResponse.asString(), S1ResponseBody.class);
-        checkResponseStatusKeys(responseBody, responseStatusValues);
-        assertAll(testName, requestHeaders, requestBodyAsString, restAssuredResponse);
-
-        checkResponseHeaders(requestHeaders, restAssuredResponse, responseStatusValues);
         validateJsonBody(requestBodyAsString, testDataHolder.getRequestJsonSchema(), isRequestBodyValid);
         validateJsonBody(restAssuredResponse.asString(), testDataHolder.getResponseJsonSchema());
+
+        S1ResponseBody responseBody = deserializeResponseBody(S1ResponseBody.class, testLogData);
+        checkResponseStatusCode(responseBody, responseValues, testLogData);
+
+        checkResponseHeaders(requestHeaders, restAssuredResponse, responseValues);
 
         /*
         Остальные проверки
@@ -119,7 +119,7 @@ public final class S1Tester extends RestRequestTester {
     }
 
     public void specificHeadersTest(String testName,
-                                    S1ResponseStatusValues responseStatusValues,
+                                    S1ResponseValues responseStatusValues,
                                     Map<String, String> requestHeaders,
                                     boolean isRequestBodyValid) throws IOException {
         Map<String, String> localRequestHeaders = new HashMap<>(defaultHeaders);
@@ -145,7 +145,7 @@ public final class S1Tester extends RestRequestTester {
 
     private void checkResponseHeaders(Map<String, String> requestHeaders,
                                       Response restAssuredResponse,
-                                      S1ResponseStatusValues responseStatusValues) {
+                                      S1ResponseValues responseStatusValues) {
         Headers responseHeaders = restAssuredResponse.headers();
 
         logger.debug("Found response headers: " + responseHeaders.size());
@@ -160,7 +160,7 @@ public final class S1Tester extends RestRequestTester {
             headersPatterns.put(headerPattern.getHeaderName(), headerPattern.getPattern());
         }
 
-        if (responseStatusValues == S1ResponseStatusValues.NO_REQUIRED_HEADER) {
+        if (responseStatusValues == S1ResponseValues.NO_REQUIRED_HEADER) {
             for (String requiredHeaderName : requiredHeadersSet) {
                 softAssert.assertNull(responseHeaders.getValue(requiredHeaderName),
                         String.format("%s check in response headers failed:", requiredHeaderName));

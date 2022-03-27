@@ -1,15 +1,11 @@
-package ru.Chayka;
+package ru.Chayka.journal;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.asserts.SoftAssert;
-import ru.Chayka.journal.JournalEntryType;
-import ru.Chayka.journal.JournalFieldType;
 import ru.Chayka.exceptions.NoSuchJournalFieldTypeInfoException;
-import ru.Chayka.journal.AbstractJsonJournal;
-import ru.Chayka.journal.ResponseKey;
 
 import java.util.ArrayList;
 import java.util.List;
