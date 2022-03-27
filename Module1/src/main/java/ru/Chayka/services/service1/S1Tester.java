@@ -55,28 +55,6 @@ public final class S1Tester extends RestRequestTester <S1TestDataHolder> {
                 .contentType(ContentType.JSON);
     }
 
-    public void positiveTest(String testName,
-                             TestClient testClient,
-                             List<String> parameters) throws IOException {
-        positiveTest(testName, defaultHeaders, testClient, parameters);
-    }
-
-    public void positiveTest(String testName,
-                             Map<String, String> requestHeaders,
-                             TestClient testClient,
-                             List<String> parameters) throws IOException {
-
-        Map<String, String> localRequestHeaders = new HashMap<>(requestHeaders);
-        if (!requestHeaders.containsKey("header5")) {
-            localRequestHeaders.put("header5", testDataHolder.formHeader5());
-        }
-        if (requestHeaders.containsKey("header6")) {
-            localRequestHeaders.put("header6", testDataHolder.formHeader6(testName));
-        }
-
-        baseTest(testName, S1ResponseValues.OK, localRequestHeaders, testClient, parameters, true);
-    }
-
     public void baseTest(String testName,
                          S1ResponseValues responseValues,
                          Map<String, String> requestHeaders,
@@ -118,9 +96,36 @@ public final class S1Tester extends RestRequestTester <S1TestDataHolder> {
         finalAssertAll(testName, requestHeaders, requestBodyAsString, restAssuredResponse);
     }
 
+    public void baseTest(String testName,
+                         S1ResponseValues responseValues,
+                         TestClient testClient,
+                         List<String> parameters,
+                         boolean isRequestBodyValid) throws IOException {
+        specificHeadersTest(testName,
+                responseValues,
+                new HashMap<>(),
+                testClient,
+                parameters,
+                isRequestBodyValid);
+    }
+
+    public void baseTest(String testName,
+                         S1ResponseValues responseValues,
+                         TestClient testClient,
+                         List<String> parameters) throws IOException {
+        specificHeadersTest(testName,
+                responseValues,
+                new HashMap<>(),
+                testClient,
+                parameters,
+                true);
+    }
+
     public void specificHeadersTest(String testName,
                                     S1ResponseValues responseStatusValues,
                                     Map<String, String> requestHeaders,
+                                    TestClient testClient,
+                                    List<String> parameters,
                                     boolean isRequestBodyValid) throws IOException {
         Map<String, String> localRequestHeaders = new HashMap<>(defaultHeaders);
         localRequestHeaders.put(S1HeaderPattern.HEADER5.getHeaderName(), testDataHolder.formHeader5());
@@ -138,6 +143,18 @@ public final class S1Tester extends RestRequestTester <S1TestDataHolder> {
                 testName,
                 responseStatusValues,
                 localRequestHeaders,
+                testClient,
+                parameters,
+                isRequestBodyValid);
+    }
+
+    public void specificHeadersTest(String testName,
+                                    S1ResponseValues responseValues,
+                                    Map<String, String> requestHeaders,
+                                    boolean isRequestBodyValid) throws IOException {
+        specificHeadersTest(testName,
+                responseValues,
+                requestHeaders,
                 testDataHolder.getDefaultTestClient(),
                 testDataHolder.getDefaultParameter(),
                 isRequestBodyValid);

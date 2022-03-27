@@ -7,6 +7,7 @@ import io.restassured.response.Response;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import ru.Chayka.enums.TestClient;
 import ru.Chayka.restrequest.RestRequestTestLogData;
 import ru.Chayka.restrequest.RestRequestTester;
 import ru.Chayka.RestConfig;
@@ -95,6 +96,27 @@ public final class S2Tester extends RestRequestTester <S2TestDataHolder> {
         finalAssertAll(testName, requestHeaders, requestBodyAsString, restAssuredResponse);
     }
 
+    public void baseTest(String testName,
+                         S2ResponseValues responseValues,
+                         String parameter,
+                         boolean isRequestBodyValid) throws IOException {
+        specificHeadersTest(testName,
+                responseValues,
+                new HashMap<>(),
+                parameter,
+                isRequestBodyValid);
+    }
+
+    public void baseTest(String testName,
+                         S2ResponseValues responseValues,
+                         String parameter) throws IOException {
+        specificHeadersTest(testName,
+                responseValues,
+                new HashMap<>(),
+                parameter,
+                true);
+    }
+
     public void specificHeadersTest(String testName,
                                     S2ResponseValues responseValues,
                                     Map<String, String> requestHeaders,
@@ -118,7 +140,11 @@ public final class S2Tester extends RestRequestTester <S2TestDataHolder> {
                                     S2ResponseValues responseValues,
                                     Map<String, String> requestHeaders,
                                     boolean isRequestBodyValid) throws IOException {
-        specificHeadersTest(testName, responseValues, requestHeaders, testDataHolder.getDefaultParameter(), isRequestBodyValid);
+        specificHeadersTest(testName,
+                responseValues,
+                requestHeaders,
+                testDataHolder.getDefaultParameter(),
+                isRequestBodyValid);
     }
 
     private void checkResponseHeaders(Map<String, String> requestHeaders,
