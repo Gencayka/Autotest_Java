@@ -15,7 +15,7 @@ import java.util.ListIterator;
  * Класс предназначен для проведения тестов по Журналированию сервиса Service1
  */
 public final class S1JournalValidator
-        extends JournalValidator<S1JsonJournal, S1ResponseKey, S1JournalEntryType> {
+        extends JournalValidator<S1JsonJournal, S1JsonJournalEntry, S1JournalEntryType> {
     public S1JournalValidator() {
         super("param13 value for Service1",
                 "param14 value for Service1",
@@ -83,9 +83,9 @@ public final class S1JournalValidator
 
     @Override
     protected void setEntryTypes(S1JsonJournal journal) {
-        ListIterator<S1ResponseKey> iterator = journal.getResponse().listIterator();
+        ListIterator<S1JsonJournalEntry> iterator = journal.getResponse().listIterator();
         while (iterator.hasNext()) {
-            S1ResponseKey entry = iterator.next();
+            S1JsonJournalEntry entry = iterator.next();
             try {
                 entry.setEntryType(S1JournalEntryType.entryToEntryType(entry));
             } catch (NoSuchJournalEntryTypeException ex) {

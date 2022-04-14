@@ -1,7 +1,7 @@
 package ru.Chayka.services.service2.journal.enums;
 
 import lombok.Getter;
-import ru.Chayka.services.service2.enums.S2ResponseValues;
+import ru.Chayka.services.service2.S2ResponseValues;
 
 import java.util.ArrayList;
 import java.util.Arrays;

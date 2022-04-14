@@ -1,11 +1,11 @@
 package ru.Chayka.services.service1.journal.enums;
 
 import lombok.AllArgsConstructor;
+import ru.Chayka.exceptions.NoSuchJournalFieldTypeException;
 import ru.Chayka.journal.JournalEntryType;
 import ru.Chayka.journal.JournalFieldType;
 import ru.Chayka.exceptions.NoSuchJournalEntryTypeException;
-import ru.Chayka.exceptions.NoSuchJournalFieldTypeInfoException;
-import ru.Chayka.services.service1.journal.S1ResponseKey;
+import ru.Chayka.services.service1.journal.S1JsonJournalEntry;
 
 import java.util.Objects;
 import java.util.regex.Pattern;
@@ -87,7 +87,7 @@ public enum S1JournalEntryType implements JournalEntryType {
     private final boolean hasParam41;
     private final boolean hasParam42;
 
-    public static S1JournalEntryType entryToEntryType(S1ResponseKey entry) {
+    public static S1JournalEntryType entryToEntryType(S1JsonJournalEntry entry) {
         for (S1JournalEntryType journalEntryType : S1JournalEntryType.values()) {
             if (Pattern.matches(journalEntryType.param15, entry.getParam15())
                     && Objects.equals(entry.getParam1(), journalEntryType.param1)) {
@@ -101,7 +101,7 @@ public enum S1JournalEntryType implements JournalEntryType {
     }
 
     public String getFieldValueByFieldType(JournalFieldType fieldType)
-            throws NoSuchJournalFieldTypeInfoException {
+            throws NoSuchJournalFieldTypeException {
         switch (fieldType) {
             case PARAM2:
                 return param2;
@@ -114,13 +114,13 @@ public enum S1JournalEntryType implements JournalEntryType {
             case PARAM21:
                 return param21;
             default:
-                throw new NoSuchJournalFieldTypeInfoException(
+                throw new NoSuchJournalFieldTypeException(
                         "Unexpected field type " + fieldType.getFieldName());
         }
     }
 
     public boolean getFieldBoolInfoByFieldType(JournalFieldType fieldType)
-            throws NoSuchJournalFieldTypeInfoException {
+            throws NoSuchJournalFieldTypeException {
         switch (fieldType) {
             case PARAM24:
                 return hasParam24;
@@ -145,7 +145,7 @@ public enum S1JournalEntryType implements JournalEntryType {
             case PARAM42:
                 return hasParam42;
             default:
-                throw new NoSuchJournalFieldTypeInfoException(
+                throw new NoSuchJournalFieldTypeException(
                         "Unexpected field type " + fieldType.getFieldName());
         }
     }

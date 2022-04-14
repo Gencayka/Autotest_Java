@@ -7,9 +7,9 @@ import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import ru.Chayka.TestNGSpringStart;
-import ru.Chayka.services.service2.S2TestDataHolder;
-import ru.Chayka.services.service2.S2Tester;
-import ru.Chayka.services.service2.enums.S2ResponseValues;
+import ru.Chayka.services.service2.rest.S2TestDataHolder;
+import ru.Chayka.services.service2.rest.S2Tester;
+import ru.Chayka.services.service2.S2ResponseValues;
 
 import java.io.IOException;
 import java.util.Map;

@@ -12,6 +12,6 @@ import java.util.List;
  */
 @Getter
 @Setter
-public abstract class AbstractJsonJournal<RK extends ResponseKey> {
+public abstract class AbstractJsonJournal<RK extends JsonJournalEntry> {
     private List<RK> response;
 }

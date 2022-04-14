@@ -7,10 +7,10 @@ import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import ru.Chayka.TestNGSpringStart;
-import ru.Chayka.enums.TestClient;
-import ru.Chayka.services.service1.S1TestDataHolder;
-import ru.Chayka.services.service1.S1Tester;
-import ru.Chayka.services.service1.enums.S1ResponseValues;
+import ru.Chayka.TestClient;
+import ru.Chayka.services.service1.rest.S1TestDataHolder;
+import ru.Chayka.services.service1.rest.S1Tester;
+import ru.Chayka.services.service1.S1ResponseValues;
 
 import java.io.IOException;
 import java.util.List;

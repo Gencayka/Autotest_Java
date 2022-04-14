@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.asserts.SoftAssert;
-import ru.Chayka.exceptions.NoSuchJournalFieldTypeInfoException;
+import ru.Chayka.exceptions.NoSuchJournalFieldTypeException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,12 +15,12 @@ import java.util.ListIterator;
  * Класс предназначен для проведения тестов по Журналированию
  * <br>Абстрактный класс, для каждого сервиса используется отдельный класс-наследник
  * @param <JJ> Класс для хранения списка записей Журнала, наследуется от AbstractJsonJournal
- * @param <RK> Класс для хранения отдельных записей Журнала, наследуется от ResponseKey
+ * @param <JJE> Класс для хранения отдельных записей Журнала, наследуется от ResponseKey
  * @param <JET> Enum для хранения данных о типах записей Журнала, наследуется от JournalEntryType
  */
 public abstract class JournalValidator
-        <JJ extends AbstractJsonJournal<RK>,
-                RK extends ResponseKey,
+        <JJ extends AbstractJsonJournal<JJE>,
+                JJE extends JsonJournalEntry,
                 JET extends JournalEntryType> {
     protected final Logger logger = LoggerFactory.getLogger(JournalValidator.class.getName());
 
@@ -52,10 +52,10 @@ public abstract class JournalValidator
      * @param expectedEntriesTypes ожидаемый список типов записей Журнала
      */
     protected final void checkIfHasAllEntries(JJ journal, List<JET> expectedEntriesTypes) {
-        List<RK> realEntries = new ArrayList<>(journal.getResponse());
+        List<JJE> realEntries = new ArrayList<>(journal.getResponse());
 
         ListIterator<JET> expectedEntriesTypesIterator = expectedEntriesTypes.listIterator();
-        ListIterator<RK> realEntriesIterator = realEntries.listIterator();
+        ListIterator<JJE> realEntriesIterator = realEntries.listIterator();
 
         while (expectedEntriesTypesIterator.hasNext()) {
             JET expectedEntryType = expectedEntriesTypesIterator.next();
@@ -78,7 +78,7 @@ public abstract class JournalValidator
         }
 
         if (!realEntries.isEmpty()) {
-            for (RK realEntry : realEntries) {
+            for (JJE realEntry : realEntries) {
                 softAssert.fail(String.format("Unexpected entry found: \"%s\" (%s)",
                         realEntry.getEntryType().getFieldValueByFieldType(JournalFieldType.PARAM15),
                         realEntry.getEntryType().getFieldValueByFieldType(JournalFieldType.PARAM1)));
@@ -144,7 +144,7 @@ public abstract class JournalValidator
      */
     protected void checkIfHasStringField(JournalFieldType fieldType, JJ journal, boolean isNeeded) {
         try {
-            for (RK entry : journal.getResponse()) {
+            for (JJE entry : journal.getResponse()) {
                 if(entry.getEntryType().getFieldBoolInfoByFieldType(fieldType)){
                     softAssert.assertNotNull(entry.getStringField(fieldType),
                             formFieldAssertionFailMessage(fieldType.getFieldName(), entry.getParam15(), entry.getParam1()));
@@ -153,14 +153,14 @@ public abstract class JournalValidator
                             formFieldAssertionFailMessage(fieldType.getFieldName(), entry.getParam15(), entry.getParam1()));
                 }
             }
-        } catch (NoSuchJournalFieldTypeInfoException exception){
+        } catch (NoSuchJournalFieldTypeException exception){
             if (isNeeded){
-                for (RK entry : journal.getResponse()) {
+                for (JJE entry : journal.getResponse()) {
                     softAssert.assertNotNull(entry.getStringField(fieldType),
                             formFieldAssertionFailMessage(fieldType.getFieldName(), entry.getParam15(), entry.getParam1()));
                 }
             } else {
-                for (RK entry : journal.getResponse()) {
+                for (JJE entry : journal.getResponse()) {
                     softAssert.assertNull(entry.getStringField(fieldType),
                             formFieldAssertionFailMessage(fieldType.getFieldName(), entry.getParam15(), entry.getParam1()));
                 }
@@ -186,7 +186,7 @@ public abstract class JournalValidator
      */
     protected void checkIfHasIntField(JournalFieldType fieldType, JJ journal) {
         try {
-            for (RK entry : journal.getResponse()) {
+            for (JJE entry : journal.getResponse()) {
                 if(entry.getEntryType().getFieldBoolInfoByFieldType(fieldType)){
                     softAssert.assertNotNull(entry.getIntField(fieldType),
                             formFieldAssertionFailMessage(fieldType.getFieldName(), entry.getParam15(), entry.getParam1()));
@@ -195,8 +195,8 @@ public abstract class JournalValidator
                             formFieldAssertionFailMessage(fieldType.getFieldName(), entry.getParam15(), entry.getParam1()));
                 }
             }
-        } catch (NoSuchJournalFieldTypeInfoException exception){
-            for (RK entry : journal.getResponse()) {
+        } catch (NoSuchJournalFieldTypeException exception){
+            for (JJE entry : journal.getResponse()) {
                 softAssert.assertNotNull(entry.getIntField(fieldType),
                         formFieldAssertionFailMessage(fieldType.getFieldName(), entry.getParam15(), entry.getParam1()));
             }
@@ -210,7 +210,7 @@ public abstract class JournalValidator
      * @param journal журнал
      */
     protected void checkStringFieldByEntryType(JournalFieldType fieldType, JJ journal) {
-        for (RK entry : journal.getResponse()) {
+        for (JJE entry : journal.getResponse()) {
             String realValue = entry.getStringField(fieldType);
             String expectedValue = entry.getEntryType().getFieldValueByFieldType(fieldType);
             softAssert.assertEquals(realValue, expectedValue,
@@ -227,7 +227,7 @@ public abstract class JournalValidator
      * @param expectedValue ожидаемое значение
      */
     protected void checkStringFieldByEntryType(JournalFieldType fieldType, JJ journal, String expectedValue) {
-        for (RK entry : journal.getResponse()) {
+        for (JJE entry : journal.getResponse()) {
             String realValue = entry.getStringField(fieldType);
             if(entry.getEntryType().getFieldBoolInfoByFieldType(fieldType)){
                 softAssert.assertEquals(realValue, expectedValue,
@@ -249,12 +249,12 @@ public abstract class JournalValidator
      */
     protected void checkEqualStringField(JournalFieldType fieldType, JJ journal, String expectedValue, boolean isRequired){
         if(isRequired){
-            for (RK entry : journal.getResponse()) {
+            for (JJE entry : journal.getResponse()) {
                 softAssert.assertEquals(entry.getStringField(fieldType), expectedValue,
                         formFieldAssertionFailMessage(fieldType.getFieldName(), entry.getParam15(), entry.getParam1()));
             }
         } else {
-            for (RK entry : journal.getResponse()) {
+            for (JJE entry : journal.getResponse()) {
                 if (entry.getStringField(fieldType) != null){
                     softAssert.assertEquals(entry.getStringField(fieldType), expectedValue,
                             formFieldAssertionFailMessage(fieldType.getFieldName(), entry.getParam15(), entry.getParam1()));
@@ -272,7 +272,7 @@ public abstract class JournalValidator
      */
     protected void checkEqualStringField(JournalFieldType fieldType, JJ journal, boolean isRequired) {
         String expectedValue = null;
-        for (RK entry : journal.getResponse()) {
+        for (JJE entry : journal.getResponse()) {
             if(entry.getStringField(fieldType) != null){
                 expectedValue = entry.getStringField(fieldType);
                 break;
